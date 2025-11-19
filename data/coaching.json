@@ -1,0 +1,11 @@
+[
+  {
+    "coachId": "u1",
+    "studentId": "u2",
+    "sessionsAssigned": ["w1"],
+    "feedback": [
+      { "sessionId": "w1", "comment": "Bien fait, continue comme ça !" }
+    ]
+  }
+]
+

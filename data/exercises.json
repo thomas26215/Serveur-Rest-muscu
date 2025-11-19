@@ -1,0 +1,29 @@
+[
+  {
+    "id": "e1",
+    "creatorId": "u1",
+    "name": "Pompes",
+    "description": "Exercice de musculation du haut du corps",
+    "videoUrl": null,
+    "muscleGroups": ["pectoraux", "triceps"],
+    "instructions": "Faire attention à garder le dos droit",
+    "equipment": [],
+    "type": "repetitions",
+    "defaultLoadUnit": null,
+    "visibility": "public"
+  },
+  {
+    "id": "e2",
+    "creatorId": "u1",
+    "name": "Squats",
+    "description": "Exercice pour les jambes",
+    "videoUrl": null,
+    "muscleGroups": ["quadriceps", "fessiers"],
+    "instructions": "Descendre bien bas et remonter",
+    "equipment": [],
+    "type": "repetitions",
+    "defaultLoadUnit": null,
+    "visibility": "public"
+  }
+]
+

@@ -1,0 +1,19 @@
+[
+  {
+    "userId": "u2",
+    "sessionHistory": [
+      {
+        "sessionId": "s1",
+        "date": "2025-11-03T10:00:00Z",
+        "workoutId": "w1",
+        "exercisesPerformed": [
+          { "exerciseId": "e1", "sets": 3, "repetitions": 12, "load": 0 },
+          { "exerciseId": "e2", "sets": 3, "repetitions": 15, "load": 0 }
+        ],
+        "totalVolume": 0,
+        "durationMinutes": 45
+      }
+    ]
+  }
+]
+

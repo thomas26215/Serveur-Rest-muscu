@@ -1,0 +1,11 @@
+[
+  {
+    "id": "f1",
+    "actorId": "u2",
+    "type": "workout_completed",
+    "objectRef": { "id": "w1", "type": "Workout" },
+    "content": "Laura a terminé la séance Full Body",
+    "visibility": "friends"
+  }
+]
+

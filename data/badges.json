@@ -1,0 +1,11 @@
+[
+  {
+    "id": "b1",
+    "key": "beginner",
+    "name": "Débutant",
+    "description": "Terminer sa première séance",
+    "iconUrl": null,
+    "assignedUsers": ["u2"]
+  }
+]
+

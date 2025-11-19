@@ -1,0 +1,15 @@
+[
+  {
+    "id": "gw1",
+    "hostId": "u1",
+    "workoutId": "w1",
+    "title": "Full Body du lundi",
+    "description": "Séance de groupe pour débutants",
+    "visibility": "public",
+    "startTime": "2025-11-04T18:00:00Z",
+    "participants": [
+      { "userId": "u2", "setsCompleted": 0, "repsCompleted": 0, "volumeLifted": 0 }
+    ]
+  }
+]
+

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "u1",
+    "username": "thomas",
+    "email": "thomas@example.com",
+    "firstName": "Thomas",
+    "lastName": "Dupont",
+    "bio": "Passionné de musculation",
+    "avatarUrl": null,
+    "visibilityDefault": "public",
+    "isCoach": true,
+    "friends": [
+      "u2"
+    ],
+    "blockedUsers": [],
+    "coachingStudents": [
+      "u2"
+    ]
+  },
+  {
+    "id": "u2",
+    "username": "laura",
+    "email": "laura@example.com",
+    "firstName": "Laura",
+    "lastName": "Martin",
+    "bio": "Débutante en musculation",
+    "avatarUrl": null,
+    "visibilityDefault": "friends",
+    "isCoach": false,
+    "friends": [
+      "u1"
+    ],
+    "blockedUsers": [],
+    "coachingStudents": []
+  },
+  {
+    "name": "Thomas",
+    "email": "thomas@example.com",
+    "age": 28
+  }
+]

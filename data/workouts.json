@@ -1,0 +1,16 @@
+[
+  {
+    "id": "w1",
+    "creatorId": "u1",
+    "name": "Séance Full Body",
+    "description": "Travail de tout le corps",
+    "difficulty": "beginner",
+    "primaryGoal": "force",
+    "exercises": [
+      { "exerciseId": "e1", "order": 1, "sets": 3, "repetitions": 12, "load": null, "restSeconds": 60 },
+      { "exerciseId": "e2", "order": 2, "sets": 3, "repetitions": 15, "load": null, "restSeconds": 60 }
+    ],
+    "visibility": "public"
+  }
+]
+
