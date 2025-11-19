@@ -41,13 +41,10 @@ Créer un fichier `.env` à la racine si nécessaire :
 ```env
 PORT=3000
 DATABASE_URL=url_de_votre_bdd
-FIREBASE_CREDENTIALS=chemin/vers/credentials.json
 ```
 
 * `PORT` : port d’écoute du serveur (par défaut 3000).
-* `DATABASE_URL` : URL de la base de données (MongoDB, PostgreSQL, etc.).
-* `FIREBASE_CREDENTIALS` : si Firebase est utilisé pour stockage/authentification.
-
+* `DATABASE_URL` : URL de la base de données (MongoDB, PostgreSQL, etc.) si vous souhaitez implémenter la votre. Actuellement, tout est en JSON.
 ---
 
 ## Démarrage du serveur
@@ -55,9 +52,6 @@ FIREBASE_CREDENTIALS=chemin/vers/credentials.json
 ```bash
 # Pour lancer le serveur
 npm start
-
-# Pour développement avec reload automatique
-npm run dev
 ```
 
 Le serveur est accessible par défaut sur : `http://localhost:3000`.
