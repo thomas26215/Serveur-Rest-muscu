@@ -1,0 +1,688 @@
+openapi: 3.1.0
+info:
+  title: Musculation Collaborative API
+  description: API REST pour une plateforme de musculation collaborative, avec gestion des utilisateurs, exercices, séances, entraînements de groupe, défis, coaching, activités et statistiques.
+  version: 1.0.0
+servers:
+  - url: https://api.musculation.exemple.com/v1
+    description: Serveur principal
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        username: { type: string }
+        email: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        bio: { type: string }
+        avatarUrl: { type: string }
+        visibilityDefault: { type: string, enum: [public, friends, private] }
+        isCoach: { type: boolean }
+        friends: { type: array, items: { type: string } }
+        blockedUsers: { type: array, items: { type: string } }
+        coachingStudents: { type: array, items: { type: string } }
+      required: [id, username, email]
+
+    Exercise:
+      type: object
+      properties:
+        id: { type: string }
+        creatorId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        videoUrl: { type: string, nullable: true }
+        muscleGroups: { type: array, items: { type: string } }
+        instructions: { type: string }
+        equipment: { type: array, items: { type: string } }
+        type: { type: string, enum: [load, duration] }
+        defaultLoadUnit: { type: string, nullable: true }
+        visibility: { type: string, enum: [public, friends, private] }
+      required: [id, creatorId, name, description, type, visibility]
+
+    WorkoutExercise:
+      type: object
+      properties:
+        exerciseId: { type: string }
+        order: { type: integer }
+        sets: { type: integer, nullable: true }
+        repetitions: { type: integer, nullable: true }
+        load: { type: number, nullable: true }
+        restSeconds: { type: integer, nullable: true }
+
+    Workout:
+      type: object
+      properties:
+        id: { type: string }
+        creatorId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        difficulty: { type: string, enum: [beginner, intermediate, advanced] }
+        primaryGoal: { type: string }
+        exercises: { type: array, items: { $ref: '#/components/schemas/WorkoutExercise' } }
+        visibility: { type: string, enum: [public, friends, private] }
+      required: [id, creatorId, name, description, difficulty, primaryGoal, exercises, visibility]
+
+    GroupWorkoutParticipant:
+      type: object
+      properties:
+        userId: { type: string }
+        setsCompleted: { type: integer }
+        repsCompleted: { type: integer }
+        volumeLifted: { type: number }
+
+    GroupWorkout:
+      type: object
+      properties:
+        id: { type: string }
+        hostId: { type: string }
+        workoutId: { type: string }
+        title: { type: string }
+        description: { type: string }
+        visibility: { type: string, enum: [public, friends, private] }
+        startTime: { type: string, format: date-time }
+        participants: { type: array, items: { $ref: '#/components/schemas/GroupWorkoutParticipant' } }
+      required: [id, hostId, workoutId, title, description, visibility, startTime, participants]
+
+    ChallengeObjective:
+      type: object
+      properties:
+        type: { type: string, enum: [repetitions, duration, sessions] }
+        value: { type: number }
+        targetExerciseId: { type: string, nullable: true }
+
+    ChallengeParticipant:
+      type: object
+      properties:
+        userId: { type: string }
+        progress: { type: number }
+
+    Challenge:
+      type: object
+      properties:
+        id: { type: string }
+        creatorId: { type: string }
+        name: { type: string }
+        description: { type: string }
+        objective: { $ref: '#/components/schemas/ChallengeObjective' }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        participants: { type: array, items: { $ref: '#/components/schemas/ChallengeParticipant' } }
+      required: [id, creatorId, name, description, objective, startDate, endDate, participants]
+
+    CoachingFeedback:
+      type: object
+      properties:
+        sessionId: { type: string }
+        comment: { type: string }
+
+    Coaching:
+      type: object
+      properties:
+        coachId: { type: string }
+        studentId: { type: string }
+        sessionsAssigned: { type: array, items: { type: string } }
+        feedback: { type: array, items: { $ref: '#/components/schemas/CoachingFeedback' } }
+
+    ActivityFeed:
+      type: object
+      properties:
+        id: { type: string }
+        actorId: { type: string }
+        type: { type: string }
+        objectRef:
+          type: object
+          properties:
+            id: { type: string }
+            type: { type: string }
+        content: { type: string }
+        visibility: { type: string, enum: [public, friends, private] }
+
+    StatisticsExercise:
+      type: object
+      properties:
+        exerciseId: { type: string }
+        sets: { type: integer }
+        repetitions: { type: integer }
+        load: { type: number }
+
+    SessionHistory:
+      type: object
+      properties:
+        sessionId: { type: string }
+        date: { type: string, format: date-time }
+        workoutId: { type: string }
+        exercisesPerformed: { type: array, items: { $ref: '#/components/schemas/StatisticsExercise' } }
+        totalVolume: { type: number }
+        durationMinutes: { type: integer }
+
+    Statistics:
+      type: object
+      properties:
+        userId: { type: string }
+        sessionHistory: { type: array, items: { $ref: '#/components/schemas/SessionHistory' } }
+
+    Badge:
+      type: object
+      properties:
+        id: { type: string }
+        key: { type: string }
+        name: { type: string }
+        description: { type: string }
+        iconUrl: { type: string }
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Users
+  - name: Exercises
+  - name: Workouts
+  - name: GroupWorkouts
+  - name: Challenges
+  - name: Coaching
+  - name: Feed
+  - name: Statistics
+  - name: Badges
+
+paths:
+  # Users CRUD
+  /users:
+    get:
+      tags: [Users]
+      summary: Liste des utilisateurs
+      parameters:
+        - name: visibility
+          in: query
+          schema: { type: string, enum: [public, friends, private] }
+      responses:
+        '200': { description: Liste des utilisateurs, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/User' } } } } }
+    post:
+      tags: [Users]
+      summary: Créer un utilisateur
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/User' } } }
+      responses: { '201': { description: Utilisateur créé } }
+
+  /users/{id}:
+    get:
+      tags: [Users]
+      summary: Récupérer un utilisateur
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Utilisateur trouvé, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Users]
+      summary: Mettre à jour un utilisateur
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+      responses: { '200': { description: Utilisateur mis à jour } }
+    delete:
+      tags: [Users]
+      summary: Supprimer un utilisateur
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Utilisateur supprimé } }
+
+  # Exercises CRUD
+  /exercises:
+    get:
+      tags: [Exercises]
+      summary: Liste des exercices
+      parameters:
+        - name: creatorId
+          in: query
+          schema: { type: string }
+        - name: muscleGroups
+          in: query
+          schema: { type: string }
+        - name: visibility
+          in: query
+          schema: { type: string, enum: [public, friends, private] }
+      responses: { '200': { description: Liste des exercices, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Exercise' } } } } } }
+    post:
+      tags: [Exercises]
+      summary: Créer un exercice
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Exercise' } } }
+      responses: { '201': { description: Exercice créé } }
+
+  /exercises/{id}:
+    get:
+      tags: [Exercises]
+      summary: Récupérer un exercice
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Exercice trouvé, content: { application/json: { schema: { $ref: '#/components/schemas/Exercise' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Exercises]
+      summary: Mettre à jour un exercice
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Exercise' } } } }
+      responses: { '200': { description: Exercice mis à jour } }
+    delete:
+      tags: [Exercises]
+      summary: Supprimer un exercice
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Exercice supprimé } }
+
+  # Workouts CRUD
+  /workouts:
+    get:
+      tags: [Workouts]
+      summary: Liste des séances
+      parameters:
+        - name: creatorId
+          in: query
+          schema: { type: string }
+        - name: difficulty
+          in: query
+          schema: { type: string, enum: [beginner, intermediate, advanced] }
+        - name: visibility
+          in: query
+          schema: { type: string, enum: [public, friends, private] }
+      responses: { '200': { description: Liste des séances, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Workout' } } } } } }
+    post:
+      tags: [Workouts]
+      summary: Créer une séance
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/Workout' } } }
+      responses: { '201': { description: Séance créée } }
+
+  /workouts/{id}:
+    get:
+      tags: [Workouts]
+      summary: Récupérer une séance
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Séance trouvée, content: { application/json: { schema: { $ref: '#/components/schemas/Workout' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Workouts]
+      summary: Mettre à jour une séance
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Workout' } } } }
+      responses: { '200': { description: Séance mise à jour } }
+    delete:
+      tags: [Workouts]
+      summary: Supprimer une séance
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Séance supprimée } }
+
+# GroupWorkouts CRUD
+  /group-workouts:
+    get:
+      tags: [GroupWorkouts]
+      summary: Liste des séances de groupe
+      parameters:
+        - name: hostId
+          in: query
+          schema: { type: string }
+        - name: workoutId
+          in: query
+          schema: { type: string }
+        - name: visibility
+          in: query
+          schema: { type: string, enum: [public, friends, private] }
+      responses: { '200': { description: Liste des séances de groupe, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/GroupWorkout' } } } } } }
+    post:
+      tags: [GroupWorkouts]
+      summary: Créer une séance de groupe
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GroupWorkout' } } } }
+      responses: { '201': { description: Séance de groupe créée } }
+
+  /group-workouts/{id}:
+    get:
+      tags: [GroupWorkouts]
+      summary: Récupérer une séance de groupe
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Séance de groupe trouvée, content: { application/json: { schema: { $ref: '#/components/schemas/GroupWorkout' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [GroupWorkouts]
+      summary: Mettre à jour une séance de groupe
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/GroupWorkout' } } } }
+      responses: { '200': { description: Séance de groupe mise à jour } }
+    delete:
+      tags: [GroupWorkouts]
+      summary: Supprimer une séance de groupe
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Séance de groupe supprimée } }
+
+# Challenges CRUD
+  /challenges:
+    get:
+      tags: [Challenges]
+      summary: Liste des défis
+      parameters:
+        - name: creatorId
+          in: query
+          schema: { type: string }
+        - name: startDate
+          in: query
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          schema: { type: string, format: date }
+      responses: { '200': { description: Liste des défis, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Challenge' } } } } } }
+    post:
+      tags: [Challenges]
+      summary: Créer un défi
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Challenge' } } } }
+      responses: { '201': { description: Défi créé } }
+
+  /challenges/{id}:
+    get:
+      tags: [Challenges]
+      summary: Récupérer un défi
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Défi trouvé, content: { application/json: { schema: { $ref: '#/components/schemas/Challenge' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Challenges]
+      summary: Mettre à jour un défi
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Challenge' } } } }
+      responses: { '200': { description: Défi mis à jour } }
+    delete:
+      tags: [Challenges]
+      summary: Supprimer un défi
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Défi supprimé } }
+
+# Coaching CRUD
+  /coaching:
+    get:
+      tags: [Coaching]
+      summary: Liste des coachings
+      parameters:
+        - name: coachId
+          in: query
+          schema: { type: string }
+        - name: studentId
+          in: query
+          schema: { type: string }
+      responses: { '200': { description: Liste des coachings, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Coaching' } } } } } }
+    post:
+      tags: [Coaching]
+      summary: Créer un coaching
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Coaching' } } } }
+      responses: { '201': { description: Coaching créé } }
+
+  /coaching/{coachId}/{studentId}:
+    get:
+      tags: [Coaching]
+      summary: Récupérer le coaching d’un étudiant par un coach
+      parameters:
+        - name: coachId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { '200': { description: Coaching trouvé, content: { application/json: { schema: { $ref: '#/components/schemas/Coaching' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Coaching]
+      summary: Mettre à jour un coaching
+      parameters:
+        - name: coachId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Coaching' } } } }
+      responses: { '200': { description: Coaching mis à jour } }
+    delete:
+      tags: [Coaching]
+      summary: Supprimer un coaching
+      parameters:
+        - name: coachId
+          in: path
+          required: true
+          schema: { type: string }
+        - name: studentId
+          in: path
+          required: true
+          schema: { type: string }
+      responses: { '204': { description: Coaching supprimé } }
+
+# Feed CRUD
+  /feed:
+    get:
+      tags: [Feed]
+      summary: Liste des activités
+      parameters:
+        - name: actorId
+          in: query
+          schema: { type: string }
+        - name: visibility
+          in: query
+          schema: { type: string, enum: [public, friends, private] }
+      responses: { '200': { description: Liste des activités, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ActivityFeed' } } } } } }
+    post:
+      tags: [Feed]
+      summary: Publier une activité
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ActivityFeed' } } } }
+      responses: { '201': { description: Activité publiée } }
+
+  /feed/{id}:
+    get:
+      tags: [Feed]
+      summary: Récupérer une activité
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Activité trouvée, content: { application/json: { schema: { $ref: '#/components/schemas/ActivityFeed' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Feed]
+      summary: Mettre à jour une activité
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/ActivityFeed' } } } }
+      responses: { '200': { description: Activité mise à jour } }
+    delete:
+      tags: [Feed]
+      summary: Supprimer une activité
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Activité supprimée } }
+
+# Statistics CRUD
+  /statistics:
+    get:
+      tags: [Statistics]
+      summary: Liste des statistiques
+      parameters:
+        - name: userId
+          in: query
+          schema: { type: string }
+      responses: { '200': { description: Liste des statistiques, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Statistics' } } } } } }
+    post:
+      tags: [Statistics]
+      summary: Ajouter une statistique
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Statistics' } } } }
+      responses: { '201': { description: Statistique ajoutée } }
+
+  /statistics/{userId}:
+    get:
+      tags: [Statistics]
+      summary: Récupérer les statistiques d’un utilisateur
+      parameters: [{ name: userId, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Statistiques trouvées, content: { application/json: { schema: { $ref: '#/components/schemas/Statistics' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Statistics]
+      summary: Mettre à jour les statistiques d’un utilisateur
+      parameters: [{ name: userId, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Statistics' } } } }
+      responses: { '200': { description: Statistiques mises à jour } }
+    delete:
+      tags: [Statistics]
+      summary: Supprimer les statistiques d’un utilisateur
+      parameters: [{ name: userId, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Statistiques supprimées } }
+
+# Badges CRUD
+  /badges:
+    get:
+      tags: [Badges]
+      summary: Liste des badges
+      responses: { '200': { description: Liste des badges, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Badge' } } } } } }
+    post:
+      tags: [Badges]
+      summary: Créer un badge
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Badge' } } } }
+      responses: { '201': { description: Badge créé } }
+
+  /badges/{id}:
+    get:
+      tags: [Badges]
+      summary: Récupérer un badge
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: Badge trouvé, content: { application/json: { schema: { $ref: '#/components/schemas/Badge' } } } }, '404': { description: Introuvable } }
+    put:
+      tags: [Badges]
+      summary: Mettre à jour un badge
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/Badge' } } } }
+      responses: { '200': { description: Badge mis à jour } }
+    delete:
+      tags: [Badges]
+      summary: Supprimer un badge
+      parameters: [{ name: id, in: path, required: true, schema: { type: string } }]
+      responses: { '204': { description: Badge supprimé } }
+  /users/{id}/friends:
+    get:
+      tags: [Users]
+      summary: Liste des amis d’un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des amis
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/User' }
+
+  /users/{id}/coaching-students:
+    get:
+      tags: [Users]
+      summary: Liste des élèves coachés par un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des élèves
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/User' }
+
+  /group-workouts/{id}/participants:
+    get:
+      tags: [GroupWorkouts]
+      summary: Liste des participants à une séance de groupe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/GroupWorkoutParticipant' }
+
+  /group-workouts/{id}/join:
+    post:
+      tags: [GroupWorkouts]
+      summary: Rejoindre une séance de groupe
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: { type: string }
+      responses:
+        '200': { description: Participant ajouté à la séance }
+
+  /challenges/{id}/participants:
+    get:
+      tags: [Challenges]
+      summary: Liste des participants d’un défi
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ChallengeParticipant' }
+
+  /statistics/{userId}/sessions:
+    get:
+      tags: [Statistics]
+      summary: Historique des séances d’un utilisateur
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Liste des séances
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SessionHistory' }
+
+  /badges/{id}/assign:
+    post:
+      tags: [Badges]
+      summary: Attribuer un badge à un utilisateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId: { type: string }
+      responses:
+        '200': { description: Badge attribué à l’utilisateur }
+
